@@ -2,7 +2,7 @@
 
 PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
 {
-    for (auto* btn : { &loadButton, &playButton, &stopButton })
+    for (auto* btn : { &loadButton, &playButton, &stopButton, &mutebutton })
     {
         btn->addListener(this);
         addAndMakeVisible(btn);
@@ -27,6 +27,7 @@ void PlayerGUI::resized()
     loadButton.setBounds(20, y, 100, 40);
     playButton.setBounds(140, y, 60, 40);
     stopButton.setBounds(220, y, 60, 40);
+	mutebutton.setBounds(300, y, 60, 40);
     volumeSlider.setBounds(20, 100, getWidth() - 40, 30);
 }
 
@@ -51,6 +52,21 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     {
         audio.stop();
     }
+    else if (button == &mutebutton)
+    {
+        if (volumeSlider.getValue() > 0.0)
+        {
+            volprev = (float)volumeSlider.getValue(); 
+            volumeSlider.setValue(0.0);
+            mutebutton.setButtonText("Unmute");
+        }
+        else
+        {
+            volumeSlider.setValue(volprev); 
+            mutebutton.setButtonText("Mute");
+        }
+    }
+
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
@@ -58,4 +74,3 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider)
     if (slider == &volumeSlider)
         audio.setGain((float)slider->getValue());
 }
-
