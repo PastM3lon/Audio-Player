@@ -18,7 +18,7 @@ public:
     {
         mainWindow = nullptr; // Clean up
     }
-
+        
 private:
     // The main window of the app
     class MainWindow : public juce::DocumentWindow
@@ -31,7 +31,7 @@ private:
         {
             setUsingNativeTitleBar(true);
             setContentOwned(new MainComponent(), true); // MainComponent = our UI + logic
-            centreWithSize(400, 200);
+            centreWithSize(600, 400);
             setVisible(true);
         }
 
