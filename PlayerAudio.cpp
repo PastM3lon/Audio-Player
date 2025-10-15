@@ -60,3 +60,18 @@ void PlayerAudio::setSpeed(double ratio)
     if (resamplingSource)
         resamplingSource->setResamplingRatio(ratio);
 }
+void PlayerAudio::pause()
+{
+    transportSource.stop();
+}
+
+void PlayerAudio::setPosition(double newPosition)
+{
+    transportSource.setPosition(newPosition);
+}
+
+void PlayerAudio::setPositionToEnd()
+{
+    auto length = transportSource.getLengthInSeconds();
+    transportSource.setPosition(length - 2.0);
+}
