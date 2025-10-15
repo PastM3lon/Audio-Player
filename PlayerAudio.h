@@ -15,10 +15,11 @@ public:
     void start();
     void stop();
     void setGain(float gain);
+    void setSpeed(double ratio);
 
 private:
     juce::AudioFormatManager formatManager;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
+    std::unique_ptr<juce::ResamplingAudioSource> resamplingSource;
 };
-
