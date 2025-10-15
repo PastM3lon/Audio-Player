@@ -22,10 +22,11 @@ private:
     juce::TextButton loadButton{ "Load" };
     juce::TextButton playButton{ "Play" };
     juce::TextButton stopButton{ "Stop" };
-	juce::TextButton mutebutton{ "Mute" };
+    juce::TextButton mutebutton{ "Mute" };
     bool muted = false;
     float volprev = 0.5f;
     juce::Slider volumeSlider;
+	juce::Slider speedSlider;
 
     std::unique_ptr<juce::FileChooser> fileChooser;
 };
