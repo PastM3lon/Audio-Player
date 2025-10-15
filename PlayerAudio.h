@@ -16,6 +16,9 @@ public:
     void stop();
     void setGain(float gain);
     void setSpeed(double ratio);
+    void pause();
+    void setPosition(double newPosition);
+    void setPositionToEnd();
 
 private:
     juce::AudioFormatManager formatManager;
