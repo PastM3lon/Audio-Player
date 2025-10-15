@@ -18,7 +18,7 @@ public:
     {
         mainWindow = nullptr; // Clean up
     }
-        
+
 private:
     // The main window of the app
     class MainWindow : public juce::DocumentWindow
