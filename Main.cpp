@@ -31,7 +31,7 @@ private:
         {
             setUsingNativeTitleBar(true);
             setContentOwned(new MainComponent(), true); // MainComponent = our UI + logic
-            centreWithSize(600, 400);
+            centreWithSize(800, 200);
             setVisible(true);
         }
 
@@ -46,3 +46,4 @@ private:
 
 // This macro starts the app
 START_JUCE_APPLICATION(SimpleAudioPlayer)
+
