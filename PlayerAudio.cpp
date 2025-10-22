@@ -75,3 +75,8 @@ void PlayerAudio::setPositionToEnd()
     auto length = transportSource.getLengthInSeconds();
     transportSource.setPosition(length - 2.0);
 }
+
+void PlayerAudio::setLooping(bool shouldLoop)
+{
+    transportSource.setLooping(shouldLoop);
+}
