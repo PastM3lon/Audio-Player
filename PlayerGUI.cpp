@@ -2,16 +2,12 @@
 
 PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
 {
-    for (auto* btn : { &loadButton, &playButton, &stopButton, &mutebutton, &pauseButton, &startButton, &endButton })
+    for (auto* btn : { &loadButton, &playButton, &stopButton, &mutebutton, &pauseButton, &startButton, &endButton, &loopButton })
 
     {
         btn->addListener(this);
         addAndMakeVisible(btn);
     }
-
-    addAndMakeVisible(loopButton);
-    loopButton.addListener(this);
-    loopButton.setButtonText("Loop: OFF");
 
     volumeSlider.setRange(0.0, 1.0, 0.01);
     volumeSlider.setValue(0.5);
@@ -48,18 +44,15 @@ void PlayerGUI::resized()
     mutebutton.setBounds(stopButton.getRight() + buttonSpacing, y, buttonWidth, buttonHeight);
     startButton.setBounds(mutebutton.getRight() + buttonSpacing, y, buttonWidth, buttonHeight);
     endButton.setBounds(startButton.getRight() + buttonSpacing, y, buttonWidth, buttonHeight);
-
-    int loopY = y + buttonHeight + 20;
-    loopButton.setBounds(20, loopY, buttonWidth, buttonHeight);
+	loopButton.setBounds(endButton.getRight() + buttonSpacing, y, buttonWidth, buttonHeight);
 
 
-    int sliderY = loopY + buttonHeight + 20;
+    int sliderY = y + buttonHeight + 40;
     int sliderHeight = 30;
 
     volumeSlider.setBounds(20, sliderY, getWidth() - 40, sliderHeight);
     speedSlider.setBounds(20, sliderY + 50, getWidth() - 40, sliderHeight);
 }
-
 
 
 void PlayerGUI::buttonClicked(juce::Button* button)
@@ -115,7 +108,6 @@ void PlayerGUI::buttonClicked(juce::Button* button)
         audio.setLooping(looping);
         loopButton.setButtonText(looping ? "Loop: ON" : "Loop: OFF");
     }
-
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
@@ -129,5 +121,3 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider)
         audio.setSpeed(slider->getValue());
     }
 }
-
-
