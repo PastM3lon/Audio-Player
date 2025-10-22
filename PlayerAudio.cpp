@@ -73,10 +73,14 @@ void PlayerAudio::setPosition(double newPosition)
 void PlayerAudio::setPositionToEnd()
 {
     auto length = transportSource.getLengthInSeconds();
-    transportSource.setPosition(length - 2.0);
+    transportSource.setPosition(length);
 }
 
 void PlayerAudio::setLooping(bool shouldLoop)
 {
+    if (readerSource)
+    {
+        readerSource->setLooping(shouldLoop);
+    }
     transportSource.setLooping(shouldLoop);
 }
