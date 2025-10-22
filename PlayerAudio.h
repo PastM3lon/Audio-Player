@@ -19,6 +19,7 @@ public:
     void pause();
     void setPosition(double newPosition);
     void setPositionToEnd();
+    void setLooping(bool shouldLoop);
 
 private:
     juce::AudioFormatManager formatManager;
@@ -26,3 +27,4 @@ private:
     juce::AudioTransportSource transportSource;
     std::unique_ptr<juce::ResamplingAudioSource> resamplingSource;
 };
+
