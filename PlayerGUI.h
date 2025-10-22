@@ -26,7 +26,9 @@ private:
     juce::TextButton pauseButton{ "Pause" };
     juce::TextButton startButton{ "Go to Start" };
     juce::TextButton endButton{ "Go to End" };
+    juce::TextButton loopButton{ "Loop: OFF" };
 
+    bool looping = false;
     bool muted = false;
     float volprev = 0.5f;
     juce::Slider volumeSlider;
@@ -34,3 +36,4 @@ private:
 
     std::unique_ptr<juce::FileChooser> fileChooser;
 };
+
