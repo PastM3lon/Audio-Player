@@ -84,3 +84,37 @@ void PlayerAudio::setLooping(bool shouldLoop)
     }
     transportSource.setLooping(shouldLoop);
 }
+
+double PlayerAudio::getCurrentPosition() const
+{
+    return transportSource.getCurrentPosition();
+}
+
+double PlayerAudio::getLengthInSeconds() const
+{
+    if (readerSource && readerSource->getAudioFormatReader())
+        return readerSource->getAudioFormatReader()->lengthInSamples /
+        readerSource->getAudioFormatReader()->sampleRate;
+    return 0.0;
+}
+
+bool PlayerAudio::isPlaying() const
+{
+    return transportSource.isPlaying();
+}
+
+void PlayerAudio::skipForward(double seconds)
+{
+    double newPosition = transportSource.getCurrentPosition() + 10;
+    if (newPosition > getLengthInSeconds())
+        newPosition = getLengthInSeconds();
+    transportSource.setPosition(newPosition);
+}
+
+void PlayerAudio::skipBackward(double seconds)
+{
+    double newPosition = transportSource.getCurrentPosition() - 10;
+    if (newPosition < 0.0)
+        newPosition = 0.0;
+    transportSource.setPosition(newPosition);
+}   
