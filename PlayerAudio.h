@@ -20,6 +20,11 @@ public:
     void setPosition(double newPosition);
     void setPositionToEnd();
     void setLooping(bool shouldLoop);
+    double getCurrentPosition() const;
+    double getLengthInSeconds() const;
+	bool isPlaying() const;
+	void skipForward(double seconds);
+	void skipBackward(double seconds);
 
 private:
     juce::AudioFormatManager formatManager;
@@ -27,4 +32,3 @@ private:
     juce::AudioTransportSource transportSource;
     std::unique_ptr<juce::ResamplingAudioSource> resamplingSource;
 };
-
