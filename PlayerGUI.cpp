@@ -1,4 +1,9 @@
 #include "PlayerGUI.h"
+#define TAGLIB_STATIC
+#include <taglib/fileref.h>
+#include <taglib/tag.h>
+#include <taglib/audioproperties.h>
+
 
 PlayerGUI::~PlayerGUI() {}
 
@@ -11,6 +16,8 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
         btn->setColour(juce::TextButton::textColourOffId, juce::Colour(0xff1c1816));
         addAndMakeVisible(btn);
     }
+   
+  
 
 
     addAndMakeVisible(addButton);
@@ -82,6 +89,12 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     totalTime.setJustificationType(juce::Justification::centredRight);
     totalTime.setColour(juce::Label::textColourId, juce::Colours::white);
     addAndMakeVisible(totalTime);
+
+    addAndMakeVisible(metaLabel);
+    metaLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+    metaLabel.setJustificationType(juce::Justification::centred);
+    metaLabel.setText("No track loaded", juce::dontSendNotification);
+
 }
 
 void PlayerGUI::paint(juce::Graphics& g)
@@ -105,9 +118,9 @@ void PlayerGUI::resized()
     int spacing = 1;
     int y = 190;
 
-    loadButton.setBounds(40, y + 5, buttonWidth, buttonHeight * 2);
-    stopButton.setBounds(loadButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
-    loopButton.setBounds(stopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
+    loadButton.setBounds(40, y + 5, buttonWidth, buttonHeight );
+    stopButton.setBounds(loadButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight );
+    loopButton.setBounds(stopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight );
 
     progressbar.setBounds(90, 150, 3 * getWidth() / 4 - 120, 30);
     tenBackwardButton.setBounds(280, (y / 2) + 25, buttonWidth / 2, buttonHeight);
@@ -131,10 +144,7 @@ void PlayerGUI::resized()
 
     addButton.setBounds(leftX, playlistY + playlistHeight - 50, 80, 30);
     removeButton.setBounds(addButton.getRight() + 10, playlistY + playlistHeight - 50, 80, 30);
-
-
-
-
+    metaLabel.setBounds(40, 100, getWidth() - 80, 30);
     getLookAndFeel().setColour(juce::Slider::thumbColourId, juce::Colour(0xfff2662f));
     getLookAndFeel().setColour(juce::Slider::trackColourId, juce::Colour(0xff3a3a3a));
 }
@@ -147,6 +157,8 @@ void PlayerGUI::paintListBoxItem(int rowNumber, juce::Graphics& g, int width, in
 {
     if (rowIsSelected)
         g.fillAll(juce::Colours::lightblue);
+    else
+        g.fillAll(juce::Colours::antiquewhite);
 
     if (rowNumber >= 0 && rowNumber < playlistFiles.size())
         g.drawText(playlistFiles[rowNumber].getFileName(),
@@ -170,7 +182,8 @@ void PlayerGUI::playSelectedFromPlaylist()
         auto& file = playlistFiles[currentTrackIndex];
         audio.loadFile(file);
         audio.start();
-    
+        pausePlay.setImages(songpause.get());
+        startTimerHz(30);
 }
 
 void PlayerGUI::buttonClicked(juce::Button* button)
@@ -214,13 +227,35 @@ void PlayerGUI::buttonClicked(juce::Button* button)
         fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
             [this](const juce::FileChooser& fc)
             {
-                auto file = fc.getResult();
+			auto file = fc.getResult();
+                if (file.existsAsFile())
+                {
+                    TagLib::FileRef f(file.getFullPathName().toRawUTF8());
+                    if (!f.isNull() && f.tag())
+                    {
+                        auto* tag = f.tag();
+                        juce::String title = tag->title().isEmpty() ? file.getFileName() : tag->title().toCString();
+                        juce::String artist = tag->artist().toCString();
+                        int duration = f.audioProperties() ? f.audioProperties()->length() : 0;
+                        metaLabel.setText("Title: " + title + " | Artist: " + artist +
+                            " | Duration: " + juce::String(duration) + "s", juce::dontSendNotification);
+                    }
+                    else
+                    {
+                        metaLabel.setText(file.getFileName(), juce::dontSendNotification);
+                    }
+                }
                 audio.loadFile(file);
+
                 if (looping)
                     audio.setLooping(true);
                 audio.start();
+                pausePlay.setImages(songpause.get());
+                startTimerHz(30);
             });
+
     }
+
     else if (button == &pausePlay)
     {
         if (audio.isPlaying())
@@ -240,7 +275,9 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     {
         audio.stop();
         stopTimer();
+        pausePlay.setImages(songplay.get());
         progressbar.setValue(0.0);
+        startTimerHz(30);
     }
     else if (button == &volButton)
     {
