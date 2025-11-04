@@ -25,6 +25,7 @@ public:
 private:
     PlayerAudio& audio;
 
+    juce::Label metaLabel;
     juce::TextButton loadButton{ "Load" };
     juce::TextButton loopButton{ "Loop: OFF" };
     juce::TextButton stopButton{ "Stop" };
