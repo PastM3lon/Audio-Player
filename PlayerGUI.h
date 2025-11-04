@@ -22,6 +22,8 @@ public:
     void paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected) override;
     void listBoxItemDoubleClicked(int row, const juce::MouseEvent&) override;
     void playSelectedFromPlaylist();
+    void extractMetadata(const juce::File& file);
+   
 private:
     PlayerAudio& audio;
 
