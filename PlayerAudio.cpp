@@ -1,4 +1,8 @@
 #include "PlayerAudio.h"
+#include <taglib/fileref.h>
+#include <taglib/tag.h>
+
+
 
 PlayerAudio::PlayerAudio()
 {
@@ -24,6 +28,30 @@ void PlayerAudio::releaseResources()
     transportSource.releaseResources();
     resamplingSource->releaseResources();
 }
+void readMetadata(PlayerAudio& player, const juce::File& file)
+{
+    TagLib::FileRef ref(file.getFullPathName().toRawUTF8());
+    if (!ref.isNull() && ref.tag())
+    {
+        TagLib::Tag* tag = ref.tag();
+        player.title  = tag->title().toCString(true);
+        player.artist = tag->artist().toCString(true);
+        player.album  = tag->album().toCString(true);
+        player.genre  = tag->genre().toCString(true);
+        player.year   = tag->year();
+        player.track  = tag->track();
+    }
+    else
+    {
+        DBG(" Could not read metadata from: " << file.getFullPathName());
+        player.title = "";
+        player.artist = "";
+        player.album = "";
+        player.genre = "";
+        player.year = 0;
+        player.track = 0;
+    }
+}
 
 void PlayerAudio::loadFile(const juce::File& file)
 {
@@ -35,6 +63,24 @@ void PlayerAudio::loadFile(const juce::File& file)
             transportSource.setSource(nullptr);
             readerSource.reset(new juce::AudioFormatReaderSource(reader, true));
             transportSource.setSource(readerSource.get(), 0, nullptr, reader->sampleRate);
+            readMetadata(*this, file);
+            if (reader != nullptr)
+                duration = reader->lengthInSamples / reader->sampleRate;
+            if (title.isNotEmpty())
+            {
+                DBG("Title: " << title);
+                DBG("Artist: " << artist);
+                DBG(" Album: " << album);
+                DBG("Genre: " << genre);
+                DBG("Year: " << year);
+                DBG(" Track: " << track);
+            }
+            else
+            {
+                DBG(" File: " << file.getFileNameWithoutExtension());
+            }
+            DBG(" Duration: " << juce::String(duration, 2) + " sec");
+
         }
     }
 }
@@ -116,5 +162,5 @@ void PlayerAudio::skipBackward(double seconds)
     double newPosition = transportSource.getCurrentPosition() - 10;
     if (newPosition < 0.0)
         newPosition = 0.0;
-    transportSource.setPosition(newPosition);
-}   
+    transportSource.setPosition(newPosition);	
+}
