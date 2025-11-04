@@ -178,13 +178,57 @@ void PlayerGUI::listBoxItemDoubleClicked(int row, const juce::MouseEvent&)
 void PlayerGUI::playSelectedFromPlaylist()
 {
     if (currentTrackIndex >= 0 && currentTrackIndex < playlistFiles.size())
-        audio.loadFile(playlistFiles[currentTrackIndex]);
+    {
         auto& file = playlistFiles[currentTrackIndex];
+        extractMetadata(file);
         audio.loadFile(file);
+        if (looping)
+            audio.setLooping(true);
         audio.start();
         pausePlay.setImages(songpause.get());
         startTimerHz(30);
+    }
 }
+void PlayerGUI::extractMetadata(const juce::File& file)
+{
+    if (!file.existsAsFile())
+    {
+        metaLabel.setText(file.getFileName(), juce::dontSendNotification);
+        return;
+    }
+
+    try
+    {
+        TagLib::FileRef f(file.getFullPathName().toRawUTF8());
+        if (!f.isNull() && f.tag())
+        {
+            auto* tag = f.tag();
+
+            juce::String title = juce::String(juce::CharPointer_UTF8(tag->title().toCString(true)));
+            juce::String artist = juce::String(juce::CharPointer_UTF8(tag->artist().toCString(true)));
+
+            if (title.isEmpty())
+                title = file.getFileNameWithoutExtension();
+            if (artist.isEmpty())
+                artist = "Unknown Artist";
+
+            int duration = f.audioProperties() ? f.audioProperties()->length() : 0;
+
+            metaLabel.setText("Title: " + title + " | Artist: " + artist +
+                " | Duration: " + juce::String(duration) + "s",
+                juce::dontSendNotification);
+        }
+        else
+        {
+            metaLabel.setText(file.getFileName(), juce::dontSendNotification);
+        }
+    }
+    catch (...)
+    {
+        metaLabel.setText("Unknown track", juce::dontSendNotification);
+    }
+}
+
 
 void PlayerGUI::buttonClicked(juce::Button* button)
 {
@@ -228,23 +272,7 @@ void PlayerGUI::buttonClicked(juce::Button* button)
             [this](const juce::FileChooser& fc)
             {
 			auto file = fc.getResult();
-                if (file.existsAsFile())
-                {
-                    TagLib::FileRef f(file.getFullPathName().toRawUTF8());
-                    if (!f.isNull() && f.tag())
-                    {
-                        auto* tag = f.tag();
-                        juce::String title = tag->title().isEmpty() ? file.getFileName() : tag->title().toCString();
-                        juce::String artist = tag->artist().toCString();
-                        int duration = f.audioProperties() ? f.audioProperties()->length() : 0;
-                        metaLabel.setText("Title: " + title + " | Artist: " + artist +
-                            " | Duration: " + juce::String(duration) + "s", juce::dontSendNotification);
-                    }
-                    else
-                    {
-                        metaLabel.setText(file.getFileName(), juce::dontSendNotification);
-                    }
-                }
+			extractMetadata(file);
                 audio.loadFile(file);
 
                 if (looping)
