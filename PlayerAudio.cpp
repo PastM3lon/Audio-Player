@@ -34,24 +34,26 @@ void readMetadata(PlayerAudio& player, const juce::File& file)
     if (!ref.isNull() && ref.tag())
     {
         TagLib::Tag* tag = ref.tag();
-        player.title  = tag->title().toCString(true);
-        player.artist = tag->artist().toCString(true);
-        player.album  = tag->album().toCString(true);
-        player.genre  = tag->genre().toCString(true);
-        player.year   = tag->year();
-        player.track  = tag->track();
+
+        player.title = juce::String(juce::CharPointer_UTF8(tag->title().toCString(true)));
+        player.artist = juce::String(juce::CharPointer_UTF8(tag->artist().toCString(true)));
+        player.album = juce::String(juce::CharPointer_UTF8(tag->album().toCString(true)));
+        player.genre = juce::String(juce::CharPointer_UTF8(tag->genre().toCString(true)));
+        player.year = tag->year();
+        player.track = tag->track();
     }
     else
     {
-        DBG(" Could not read metadata from: " << file.getFullPathName());
-        player.title = "";
-        player.artist = "";
-        player.album = "";
-        player.genre = "";
+        DBG("Could not read metadata from: " << file.getFullPathName());
+        player.title = {};
+        player.artist = {};
+        player.album = {};
+        player.genre = {};
         player.year = 0;
         player.track = 0;
     }
 }
+
 
 void PlayerAudio::loadFile(const juce::File& file)
 {
