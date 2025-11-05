@@ -28,6 +28,7 @@ private:
     PlayerAudio& audio;
 
     juce::Label metaLabel;
+    juce::TextButton mixButton{ "Mix" };
     juce::TextButton loadButton{ "Load" };
     juce::TextButton loopButton{ "Loop: OFF" };
     juce::TextButton stopButton{ "Stop" };
