@@ -1,10 +1,9 @@
-#include "PlayerGUI.h"
 #define TAGLIB_STATIC
+#include "PlayerGUI.h"
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
 #include <taglib/audioproperties.h>
-
-
+    
 PlayerGUI::~PlayerGUI() {}
 
 PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
@@ -16,8 +15,6 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
         btn->setColour(juce::TextButton::textColourOffId, juce::Colour(0xff1c1816));
         addAndMakeVisible(btn);
     }
-   
-  
 
 
     addAndMakeVisible(addButton);
@@ -26,7 +23,7 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     addButton.addListener(this);
     removeButton.addListener(this);
     playlistBox.setModel(this);
-
+    playlistBox.setColour(juce::ListBox::backgroundColourId, juce::Colour(0xff1b1b1b));
 
     auto startButtonImage = juce::Drawable::createFromImageData(BinaryData::goStart_svg, BinaryData::goStart_svgSize);
     startButton.setImages(startButtonImage.get());
@@ -65,6 +62,7 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     volumeSlider.setRange(0.0, 1.0, 0.01);
     volumeSlider.setValue(0.5);
     volumeSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+	volumeSlider.setSliderStyle(juce::Slider::LinearVertical);
     volumeSlider.addListener(this);
     addAndMakeVisible(volumeSlider);
 
@@ -73,7 +71,7 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     speedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     speedSlider.setSliderStyle(juce::Slider::Rotary);
     speedSlider.addListener(this);
-    addAndMakeVisible(speedSlider);
+	addAndMakeVisible(speedSlider);
 
     progressbar.setRange(0.0, 1.0, 0.001);
     progressbar.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
@@ -94,7 +92,6 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     metaLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     metaLabel.setJustificationType(juce::Justification::centred);
     metaLabel.setText("No track loaded", juce::dontSendNotification);
-
 }
 
 void PlayerGUI::paint(juce::Graphics& g)
@@ -109,8 +106,17 @@ void PlayerGUI::paint(juce::Graphics& g)
     g.fillRoundedRectangle(displayArea, 12.0f);
     g.setColour(juce::Colour(0xfff2662f).withAlpha(0.8f));
     g.fillRoundedRectangle(displayArea.getX(), displayArea.getBottom() + 8, displayArea.getWidth(), 6, 3);
-}
 
+    int playlistY = 300;
+    int playlistHeight = getHeight() - playlistY - 40;
+    auto playlistArea = juce::Rectangle<float>(40, playlistY, getWidth() - 80, (float)playlistHeight);
+
+    g.setColour(juce::Colour(0xff1b1b1b));
+    g.fillRoundedRectangle(playlistArea, 12.0f);
+    g.setColour(juce::Colour(0xfff2662f).withAlpha(0.3f));
+    g.drawRoundedRectangle(playlistArea, 12.0f, 1.5f);
+}
+    
 void PlayerGUI::resized()
 {
     int buttonWidth = 90;
@@ -118,12 +124,12 @@ void PlayerGUI::resized()
     int spacing = 1;
     int y = 190;
 
-    loadButton.setBounds(40, y + 5, buttonWidth, buttonHeight );
-    stopButton.setBounds(loadButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight );
-    loopButton.setBounds(stopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight );
+    loadButton.setBounds(40, y + 5, buttonWidth, buttonHeight * 2);
+    stopButton.setBounds(loadButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
+    loopButton.setBounds(stopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
 
     progressbar.setBounds(90, 150, 3 * getWidth() / 4 - 120, 30);
-    tenBackwardButton.setBounds(280, (y / 2) + 25, buttonWidth / 2, buttonHeight);
+    tenBackwardButton.setBounds(110, (y / 2) + 25, buttonWidth / 2, buttonHeight);
     startButton.setBounds(tenBackwardButton.getRight(), (y / 2) + 25, buttonWidth / 2, buttonHeight);
     pausePlay.setBounds(startButton.getRight(), (y / 2) + 25, buttonWidth / 2, buttonHeight);
     endButton.setBounds(pausePlay.getRight(), (y / 2) + 25, buttonWidth / 2, buttonHeight);
@@ -131,20 +137,20 @@ void PlayerGUI::resized()
     currentTime.setBounds(50, progressbar.getY(), 45, progressbar.getHeight());
     totalTime.setBounds(progressbar.getRight(), progressbar.getY(), 45, progressbar.getHeight());
 
-    volButton.setBounds(totalTime.getRight(), 150, buttonWidth / 2, 25);
-    volumeSlider.setBounds(volButton.getRight() - 15, 150, getWidth() / 6, 30);
+    volButton.setBounds(totalTime.getRight() + 20, 150, buttonWidth / 2, 25);
+    volumeSlider.setBounds(volButton.getX() - 20, 30, getWidth() / 6, 120);
 
-    speedSlider.setBounds(60, y + 150, 100, 100);
+    speedSlider.setBounds(loopButton.getRight() + 30, loopButton.getY(), 100, 100);
+
     int playlistY = 300;
-    int playlistHeight = getHeight() - playlistY - 20;
-    int reduceLeftBy = 120;                    
-    int leftX = 40 + reduceLeftBy;
-    int rightMargin = 40;                      
-    playlistBox.setBounds(leftX, playlistY, getWidth() - leftX - rightMargin, playlistHeight - 60);
+    int playlistHeight = getHeight() - playlistY - 40;
 
-    addButton.setBounds(leftX, playlistY + playlistHeight - 50, 80, 30);
+    playlistBox.setBounds(60, playlistY + 20, getWidth() - 120, playlistHeight - 80);
+    addButton.setBounds(60, playlistY + playlistHeight - 50, 80, 30);
     removeButton.setBounds(addButton.getRight() + 10, playlistY + playlistHeight - 50, 80, 30);
-    metaLabel.setBounds(40, 100, getWidth() - 80, 30);
+
+    metaLabel.setBounds(40, 60, getWidth() - 80, 30);
+
     getLookAndFeel().setColour(juce::Slider::thumbColourId, juce::Colour(0xfff2662f));
     getLookAndFeel().setColour(juce::Slider::trackColourId, juce::Colour(0xff3a3a3a));
 }
@@ -157,8 +163,8 @@ void PlayerGUI::paintListBoxItem(int rowNumber, juce::Graphics& g, int width, in
 {
     if (rowIsSelected)
         g.fillAll(juce::Colours::lightblue);
-    else
-        g.fillAll(juce::Colours::antiquewhite);
+
+    g.setColour(juce::Colours::white);
 
     if (rowNumber >= 0 && rowNumber < playlistFiles.size())
         g.drawText(playlistFiles[rowNumber].getFileName(),
@@ -189,46 +195,6 @@ void PlayerGUI::playSelectedFromPlaylist()
         startTimerHz(30);
     }
 }
-void PlayerGUI::extractMetadata(const juce::File& file)
-{
-    if (!file.existsAsFile())
-    {
-        metaLabel.setText(file.getFileName(), juce::dontSendNotification);
-        return;
-    }
-
-    try
-    {
-        TagLib::FileRef f(file.getFullPathName().toRawUTF8());
-        if (!f.isNull() && f.tag())
-        {
-            auto* tag = f.tag();
-
-            juce::String title = juce::String(juce::CharPointer_UTF8(tag->title().toCString(true)));
-            juce::String artist = juce::String(juce::CharPointer_UTF8(tag->artist().toCString(true)));
-
-            if (title.isEmpty())
-                title = file.getFileNameWithoutExtension();
-            if (artist.isEmpty())
-                artist = "Unknown Artist";
-
-            int duration = f.audioProperties() ? f.audioProperties()->length() : 0;
-
-            metaLabel.setText("Title: " + title + " | Artist: " + artist +
-                " | Duration: " + juce::String(duration) + "s",
-                juce::dontSendNotification);
-        }
-        else
-        {
-            metaLabel.setText(file.getFileName(), juce::dontSendNotification);
-        }
-    }
-    catch (...)
-    {
-        metaLabel.setText("Unknown track", juce::dontSendNotification);
-    }
-}
-
 
 void PlayerGUI::buttonClicked(juce::Button* button)
 {
@@ -271,19 +237,13 @@ void PlayerGUI::buttonClicked(juce::Button* button)
         fileChooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
             [this](const juce::FileChooser& fc)
             {
-			auto file = fc.getResult();
-			extractMetadata(file);
+                auto file = fc.getResult();
                 audio.loadFile(file);
-
+                extractMetadata(file);
                 if (looping)
                     audio.setLooping(true);
-                audio.start();
-                pausePlay.setImages(songpause.get());
-                startTimerHz(30);
             });
-
     }
-
     else if (button == &pausePlay)
     {
         if (audio.isPlaying())
@@ -303,9 +263,7 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     {
         audio.stop();
         stopTimer();
-        pausePlay.setImages(songplay.get());
         progressbar.setValue(0.0);
-        startTimerHz(30);
     }
     else if (button == &volButton)
     {
@@ -404,6 +362,8 @@ void PlayerGUI::timerCallback()
         {
             audio.setPosition(0.0);
             audio.start();
+            progressbar.setValue(0.0);
+            currentTime.setText("00:00", juce::dontSendNotification);
         }
         else
         {
@@ -422,5 +382,42 @@ void PlayerGUI::timerCallback()
     }
 }
 
+void PlayerGUI::extractMetadata(const juce::File& file)
+{
+    if (!file.existsAsFile())
+    {
+        metaLabel.setText(file.getFileName(), juce::dontSendNotification);
+        return;
+    }
 
+    try
+    {
+        TagLib::FileRef f(file.getFullPathName().toRawUTF8());
+        if (!f.isNull() && f.tag())
+        {
+            auto* tag = f.tag();
 
+            juce::String title = juce::String(juce::CharPointer_UTF8(tag->title().toCString(true)));
+            juce::String artist = juce::String(juce::CharPointer_UTF8(tag->artist().toCString(true)));
+
+            if (title.isEmpty())
+                title = file.getFileNameWithoutExtension();
+            if (artist.isEmpty())
+                artist = "Unknown Artist";
+
+            int duration = f.audioProperties() ? f.audioProperties()->length() : 0;
+
+            metaLabel.setText("Title: " + title + " | Artist: " + artist +
+                " | Duration: " + juce::String(duration) + "s",
+                juce::dontSendNotification);
+        }
+        else
+        {
+            metaLabel.setText(file.getFileName(), juce::dontSendNotification);
+        }
+    }
+    catch (...)
+    {
+        metaLabel.setText("Unknown track", juce::dontSendNotification);
+    }
+}
