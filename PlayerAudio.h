@@ -6,11 +6,11 @@ class PlayerAudio : public juce::AudioSource
 public:
     PlayerAudio();
     ~PlayerAudio();
-
+    void mixTracks();
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
-
+    void runMix(const juce::File& folder1, const juce::File& folder2);
     void loadFile(const juce::File& file);
     void start();
     void stop();
