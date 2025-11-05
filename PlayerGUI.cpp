@@ -3,7 +3,7 @@
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
 #include <taglib/audioproperties.h>
-    
+
 PlayerGUI::~PlayerGUI() {}
 
 PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
@@ -62,7 +62,7 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     volumeSlider.setRange(0.0, 1.0, 0.01);
     volumeSlider.setValue(0.5);
     volumeSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-	volumeSlider.setSliderStyle(juce::Slider::LinearVertical);
+    volumeSlider.setSliderStyle(juce::Slider::LinearVertical);
     volumeSlider.addListener(this);
     addAndMakeVisible(volumeSlider);
 
@@ -71,7 +71,7 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     speedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     speedSlider.setSliderStyle(juce::Slider::Rotary);
     speedSlider.addListener(this);
-	addAndMakeVisible(speedSlider);
+    addAndMakeVisible(speedSlider);
 
     progressbar.setRange(0.0, 1.0, 0.001);
     progressbar.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
@@ -92,7 +92,16 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     metaLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     metaLabel.setJustificationType(juce::Justification::centred);
     metaLabel.setText("No track loaded", juce::dontSendNotification);
-}
+
+
+    addAndMakeVisible(mixButton);
+    mixButton.setButtonText("Mix");
+    mixButton.onClick = [this] {
+        audio.mixTracks();
+        };
+
+        }
+
 
 void PlayerGUI::paint(juce::Graphics& g)
 {
@@ -116,7 +125,7 @@ void PlayerGUI::paint(juce::Graphics& g)
     g.setColour(juce::Colour(0xfff2662f).withAlpha(0.3f));
     g.drawRoundedRectangle(playlistArea, 12.0f, 1.5f);
 }
-    
+
 void PlayerGUI::resized()
 {
     int buttonWidth = 90;
@@ -150,6 +159,14 @@ void PlayerGUI::resized()
     removeButton.setBounds(addButton.getRight() + 10, playlistY + playlistHeight - 50, 80, 30);
 
     metaLabel.setBounds(40, 60, getWidth() - 80, 30);
+
+    auto bounds = getLocalBounds();
+    auto width = bounds.getWidth();
+    auto height = bounds.getHeight();
+
+    mixButton.setBounds(width / 2 - 40, height / 2 - 15, 80, 30);
+
+
 
     getLookAndFeel().setColour(juce::Slider::thumbColourId, juce::Colour(0xfff2662f));
     getLookAndFeel().setColour(juce::Slider::trackColourId, juce::Colour(0xff3a3a3a));
@@ -306,6 +323,11 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     {
         audio.skipBackward(10.0);
     }
+    if (button == &mixButton)
+    {
+        audio.mixTracks();
+    }
+
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
