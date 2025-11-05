@@ -99,6 +99,9 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     mixButton.onClick = [this] {
         audio.mixTracks();
         };
+    addAndMakeVisible(shuffleButton);
+    shuffleButton.setButtonText("Shuffle: OFF");
+    shuffleButton.addListener(this);
 
         }
 
@@ -136,7 +139,7 @@ void PlayerGUI::resized()
     loadButton.setBounds(40, y + 5, buttonWidth, buttonHeight * 2);
     stopButton.setBounds(loadButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
     loopButton.setBounds(stopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
-
+    shuffleButton.setBounds(loopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
     progressbar.setBounds(90, 150, 3 * getWidth() / 4 - 120, 30);
     tenBackwardButton.setBounds(110, (y / 2) + 25, buttonWidth / 2, buttonHeight);
     startButton.setBounds(tenBackwardButton.getRight(), (y / 2) + 25, buttonWidth / 2, buttonHeight);
@@ -229,8 +232,18 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                 auto files = fc.getResults();
                 for (auto& f : files)
                     playlistFiles.add(f);
-
                 playlistBox.updateContent();
+                if (shuffling)
+                {
+                    shuffledOrder.clear();
+                    for (int i = 0; i < playlistFiles.size(); ++i)
+                        shuffledOrder.add(i);
+                    juce::Random rng;
+                    for (int i = shuffledOrder.size() - 1; i > 0; --i)
+                        shuffledOrder.swap(i, rng.nextInt(i + 1));
+
+                }
+
             });
     }
     else if (button == &removeButton)
@@ -327,6 +340,27 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     {
         audio.mixTracks();
     }
+    else if (button == &shuffleButton)
+    {
+        shuffling = !shuffling;
+        shuffleButton.setButtonText(shuffling ? "Shuffle: ON" : "Shuffle: OFF");
+
+        if (shuffling)
+        {
+            shuffledOrder.clear();
+            for (int i = 0; i < playlistFiles.size(); ++i)
+                shuffledOrder.add(i);
+            juce::Random rng;
+            for (int i = shuffledOrder.size() - 1; i > 0; --i)
+                shuffledOrder.swap(i, rng.nextInt(i + 1));
+
+            currentTrackIndex = shuffledOrder[0];
+        }
+        else
+        {
+            shuffledOrder.clear();
+        }
+    }
 
 }
 
@@ -389,12 +423,33 @@ void PlayerGUI::timerCallback()
         }
         else
         {
-            if (currentTrackIndex + 1 < playlistFiles.size())
+            if (shuffling && shuffledOrder.size() > 0)
             {
-                currentTrackIndex++;
-                playSelectedFromPlaylist();
+                int currentPos = shuffledOrder.indexOf(currentTrackIndex);
+                if (currentPos + 1 < shuffledOrder.size())
+                {
+                    currentTrackIndex = shuffledOrder[currentPos + 1];
+                    playSelectedFromPlaylist();
+                }
+                else
+                {
+                    stopTimer();
+                    pausePlay.setImages(songplay.get());
+                }
             }
             else
+            {
+                if (currentTrackIndex + 1 < playlistFiles.size())
+                {
+                    currentTrackIndex++;
+                    playSelectedFromPlaylist();
+                }
+                else
+                {
+                    stopTimer();
+                    pausePlay.setImages(songplay.get());
+                }
+            }
             {
 
                 stopTimer();
