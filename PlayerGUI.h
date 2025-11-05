@@ -27,6 +27,8 @@ public:
 private:
     PlayerAudio& audio;
 
+    juce::TextButton shuffleButton;
+    juce::Array<int> shuffledOrder;
     juce::Label metaLabel;
     juce::TextButton mixButton{ "Mix" };
     juce::TextButton loadButton{ "Load" };
@@ -48,6 +50,7 @@ private:
     int currentTrackIndex = -1;
     bool looping = false;
     bool muted = false;
+    bool shuffling = false;
     float volprev = 0.5f;
     juce::Slider volumeSlider;
     juce::Slider speedSlider;
