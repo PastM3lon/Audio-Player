@@ -1,16 +1,15 @@
 #pragma once
 #include <JuceHeader.h>
 
-
-class PlayerAudio
+class PlayerAudio : public juce::AudioSource
 {
 public:
     PlayerAudio();
     ~PlayerAudio();
 
-    void prepareToPlay(int samplesPerBlockExpected, double sampleRate);
-    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill);
-    void releaseResources();
+    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
+    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
+    void releaseResources() override;
 
     void loadFile(const juce::File& file);
     void start();
@@ -41,5 +40,4 @@ private:
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
     std::unique_ptr<juce::ResamplingAudioSource> resamplingSource;
-
 };
