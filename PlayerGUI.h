@@ -47,6 +47,13 @@ private:
     juce::TextButton removeButton{ "Remove" };
     juce::ListBox playlistBox;
     juce::Array<juce::File> playlistFiles;
+    juce::TextButton setAButton{ "Set A" };
+    juce::TextButton setBButton{ "Set B" };
+    juce::TextButton abLoopButton{ "A-B Loop: OFF" };
+
+    double loopStart = 0.0;
+    double loopEnd = 0.0;
+    bool abLooping = false;
     int currentTrackIndex = -1;
     bool looping = false;
     bool muted = false;
