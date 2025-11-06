@@ -25,6 +25,8 @@ public:
     bool isPlaying() const;
     void skipForward(double seconds);
     void skipBackward(double seconds);
+    double getCurrentPosition();
+    void setABLooping(bool shouldLoop, double start, double end);
     juce::String getTitle() const { return title; }
     juce::String getArtist() const { return artist; }
     juce::String getAlbum() const { return album; }
@@ -40,4 +42,7 @@ private:
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
     std::unique_ptr<juce::ResamplingAudioSource> resamplingSource;
+    bool abLooping = false;
+    double loopStart = 0.0;
+    double loopEnd = 0.0;
 };
