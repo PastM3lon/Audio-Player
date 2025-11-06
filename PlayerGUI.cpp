@@ -8,7 +8,7 @@ PlayerGUI::~PlayerGUI() {}
 
 PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
 {
-    for (auto* btn : { &loadButton, &stopButton, &loopButton })
+    for (auto* btn : { &loadButton, &stopButton, &loopButton, &setAButton, &setBButton, &abLoopButton })
     {
         btn->addListener(this);
         btn->setColour(juce::TextButton::buttonColourId, juce::Colour(0xffa5978c));
@@ -328,6 +328,22 @@ void PlayerGUI::buttonClicked(juce::Button* button)
         audio.setLooping(looping);
         loopButton.setButtonText(looping ? "Loop: ON" : "Loop: OFF");
     }
+        else if (button == &setAButton)
+{
+    loopStart = audio.getCurrentPosition();
+}
+
+else if (button == &setBButton)
+{
+    loopEnd = audio.getCurrentPosition();
+}
+
+else if (button == &abLoopButton)
+{
+    abLooping = !abLooping;
+    abLoopButton.setButtonText(abLooping ? "A-B Loop: ON" : "A-B Loop: OFF");
+    audio.setABLooping(abLooping, loopStart, loopEnd);
+}
     else if (button == &tenForwardButton)
     {
         audio.skipForward(10.0);
@@ -361,7 +377,6 @@ void PlayerGUI::buttonClicked(juce::Button* button)
             shuffledOrder.clear();
         }
     }
-
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
