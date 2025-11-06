@@ -21,6 +21,11 @@ void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
     resamplingSource->getNextAudioBlock(bufferToFill);
+    if (abLooping && loopEnd > loopStart) {
+    double current = transportSource.getCurrentPosition();
+    if (current >= loopEnd)
+        transportSource.setPosition(loopStart);
+    }
 }
 
 void PlayerAudio::releaseResources()
@@ -265,6 +270,19 @@ void PlayerAudio::runMix(const juce::File& file1, const juce::File& file2)
         "Mix Complete",
         "MixedOutput.wav has been saved to your Desktop!");
 }
+
+double PlayerAudio::getCurrentPosition()
+{
+    return transportSource.getCurrentPosition();
+}
+
+void PlayerAudio::setABLooping(bool shouldLoop, double start, double end)
+{
+    abLooping = shouldLoop;
+    loopStart = start;
+    loopEnd = end;
+}
+
 
 
 
