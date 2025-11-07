@@ -36,15 +36,16 @@ private:
     juce::TextButton abLoopButton{ "A -> B Loop: OFF" };
     juce::TextButton addButton{ "Add" };
     juce::TextButton removeButton{ "Remove" };
+    juce::TextButton mixButton{ "Mix: OFF" };
 
     juce::DrawableButton pausePlay{ "Play", juce::DrawableButton::ImageFitted };
     juce::DrawableButton volButton{ "Volume", juce::DrawableButton::ImageFitted };
-	juce::DrawableButton speedButton{ "Speed", juce::DrawableButton::ImageFitted };
+    juce::DrawableButton speedButton{ "Speed", juce::DrawableButton::ImageFitted };
     juce::DrawableButton startButton{ "Go to Start", juce::DrawableButton::ImageFitted };
     juce::DrawableButton endButton{ "Go to End", juce::DrawableButton::ImageFitted };
     juce::DrawableButton tenForwardButton{ "10s Forward", juce::DrawableButton::ImageFitted };
     juce::DrawableButton tenBackwardButton{ "10s Backward", juce::DrawableButton::ImageFitted };
-    
+
     juce::Label currentTime;
     juce::Label totalTime;
     juce::Label metaLabel;
@@ -54,6 +55,7 @@ private:
     juce::Array<juce::File> playlistFiles;
     juce::Array<int> shuffledOrder;
 
+    bool mixing = false;
     int currentTrackIndex = -1;
     bool looping = false;
     bool muted = false;
@@ -75,8 +77,8 @@ private:
     std::unique_ptr<juce::Drawable> songpause;
     std::unique_ptr<juce::Drawable> forwardTen;
     std::unique_ptr<juce::Drawable> backwardTen;
-	std::unique_ptr<juce::Drawable> speedHalf;
-	std::unique_ptr<juce::Drawable> speedOne;
-	std::unique_ptr<juce::Drawable> speedOneHalf;
-	std::unique_ptr<juce::Drawable> speedTwo;
+    std::unique_ptr<juce::Drawable> speedHalf;
+    std::unique_ptr<juce::Drawable> speedOne;
+    std::unique_ptr<juce::Drawable> speedOneHalf;
+    std::unique_ptr<juce::Drawable> speedTwo;
 };
