@@ -23,45 +23,50 @@ public:
     void listBoxItemDoubleClicked(int row, const juce::MouseEvent&) override;
     void playSelectedFromPlaylist();
     void extractMetadata(const juce::File& file);
-   
+
 private:
     PlayerAudio& audio;
 
     juce::TextButton shuffleButton;
-    juce::Array<int> shuffledOrder;
-    juce::Label metaLabel;
-    juce::TextButton mixButton{ "Mix" };
     juce::TextButton loadButton{ "Load" };
     juce::TextButton loopButton{ "Loop: OFF" };
     juce::TextButton stopButton{ "Stop" };
-    juce::DrawableButton pausePlay{ "Play", juce::DrawableButton::ImageFitted };
-    juce::DrawableButton volButton{ "Volume", juce::DrawableButton::ImageFitted };
-    juce::DrawableButton startButton{ "Go to Start", juce::DrawableButton::ImageFitted };
-    juce::DrawableButton endButton{ "Go to End", juce::DrawableButton::ImageFitted };
-    juce::DrawableButton speedButton{ "Speed", juce::DrawableButton::ImageFitted };
-    juce::DrawableButton tenForwardButton{ "10s Forward", juce::DrawableButton::ImageFitted };
-    juce::DrawableButton tenBackwardButton{ "10s Backward", juce::DrawableButton::ImageFitted };
-    juce::Label currentTime;
-    juce::Label totalTime;
-    juce::TextButton addButton{ "Add" };
-    juce::TextButton removeButton{ "Remove" };
-    juce::ListBox playlistBox;
-    juce::Array<juce::File> playlistFiles;
     juce::TextButton setAButton{ "Set A" };
     juce::TextButton setBButton{ "Set B" };
-    juce::TextButton abLoopButton{ "A-B Loop: OFF" };
+    juce::TextButton abLoopButton{ "A -> B Loop: OFF" };
+    juce::TextButton addButton{ "Add" };
+    juce::TextButton removeButton{ "Remove" };
 
-    double loopStart = 0.0;
-    double loopEnd = 0.0;
-    bool abLooping = false;
+    juce::DrawableButton pausePlay{ "Play", juce::DrawableButton::ImageFitted };
+    juce::DrawableButton volButton{ "Volume", juce::DrawableButton::ImageFitted };
+	juce::DrawableButton speedButton{ "Speed", juce::DrawableButton::ImageFitted };
+    juce::DrawableButton startButton{ "Go to Start", juce::DrawableButton::ImageFitted };
+    juce::DrawableButton endButton{ "Go to End", juce::DrawableButton::ImageFitted };
+    juce::DrawableButton tenForwardButton{ "10s Forward", juce::DrawableButton::ImageFitted };
+    juce::DrawableButton tenBackwardButton{ "10s Backward", juce::DrawableButton::ImageFitted };
+    
+    juce::Label currentTime;
+    juce::Label totalTime;
+    juce::Label metaLabel;
+
+    juce::ListBox playlistBox;
+
+    juce::Array<juce::File> playlistFiles;
+    juce::Array<int> shuffledOrder;
+
     int currentTrackIndex = -1;
     bool looping = false;
     bool muted = false;
     bool shuffling = false;
     float volprev = 0.5f;
+    double loopStart = 0.0;
+    double loopEnd = 0.0;
+    bool abLooping = false;
+
     juce::Slider volumeSlider;
     juce::Slider speedSlider;
     juce::Slider progressbar;
+
     std::unique_ptr<juce::FileChooser> fileChooser;
     std::unique_ptr<juce::Drawable> muteVol;
     std::unique_ptr<juce::Drawable> lowVol;
@@ -70,4 +75,8 @@ private:
     std::unique_ptr<juce::Drawable> songpause;
     std::unique_ptr<juce::Drawable> forwardTen;
     std::unique_ptr<juce::Drawable> backwardTen;
+	std::unique_ptr<juce::Drawable> speedHalf;
+	std::unique_ptr<juce::Drawable> speedOne;
+	std::unique_ptr<juce::Drawable> speedOneHalf;
+	std::unique_ptr<juce::Drawable> speedTwo;
 };
