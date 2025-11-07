@@ -8,7 +8,7 @@ PlayerGUI::~PlayerGUI() {}
 
 PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
 {
-    for (auto* btn : { &loadButton, &stopButton, &loopButton, &addButton, &removeButton, &shuffleButton, &setAButton, &setBButton, &abLoopButton })
+    for (auto* btn : { &loadButton, &stopButton, &loopButton, &addButton, &removeButton, &shuffleButton, &setAButton, &setBButton, &abLoopButton ,&mixButton })
     {
         btn->addListener(this);
         btn->setColour(juce::TextButton::buttonColourId, juce::Colour(0xffa5978c));
@@ -45,10 +45,10 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     muteVol = juce::Drawable::createFromImageData(BinaryData::mute_svg, BinaryData::mute_svgSize);
     lowVol = juce::Drawable::createFromImageData(BinaryData::volumeDown_svg, BinaryData::volumeDown_svgSize);
     highVol = juce::Drawable::createFromImageData(BinaryData::volumeUp_svg, BinaryData::volumeUp_svgSize);
-	speedHalf = juce::Drawable::createFromImageData(BinaryData::speedHalf_svg, BinaryData::speedHalf_svgSize);
-	speedOne = juce::Drawable::createFromImageData(BinaryData::speedOne_svg, BinaryData::speedOne_svgSize);
-	speedOneHalf = juce::Drawable::createFromImageData(BinaryData::speedOneHalf_svg, BinaryData::speedOneHalf_svgSize);
-	speedTwo = juce::Drawable::createFromImageData(BinaryData::speedTwo_svg, BinaryData::speedTwo_svgSize);
+    speedHalf = juce::Drawable::createFromImageData(BinaryData::speedHalf_svg, BinaryData::speedHalf_svgSize);
+    speedOne = juce::Drawable::createFromImageData(BinaryData::speedOne_svg, BinaryData::speedOne_svgSize);
+    speedOneHalf = juce::Drawable::createFromImageData(BinaryData::speedOneHalf_svg, BinaryData::speedOneHalf_svgSize);
+    speedTwo = juce::Drawable::createFromImageData(BinaryData::speedTwo_svg, BinaryData::speedTwo_svgSize);
 
     pausePlay.setImages(songplay.get());
     pausePlay.addListener(this);
@@ -58,9 +58,9 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     volButton.addListener(this);
     addAndMakeVisible(volButton);
 
-	speedButton.setImages(speedOne.get());
-	speedButton.addListener(this);
-	addAndMakeVisible(speedButton);
+    speedButton.setImages(speedOne.get());
+    speedButton.addListener(this);
+    addAndMakeVisible(speedButton);
 
     volumeSlider.setRange(0.0, 1.0, 0.01);
     volumeSlider.setValue(0.5);
@@ -101,6 +101,9 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     metaLabel.setText("No track loaded", juce::dontSendNotification);
 
     shuffleButton.setButtonText("Shuffle: OFF");
+
+    mixButton.setButtonText("Mix: OFF");
+
 }
 
 void PlayerGUI::paint(juce::Graphics& g)
@@ -136,9 +139,9 @@ void PlayerGUI::resized()
     loadButton.setBounds(40, y + 5, buttonWidth, buttonHeight * 2);
     stopButton.setBounds(loadButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
     loopButton.setBounds(stopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
-	setAButton.setBounds(loopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight);
-	setBButton.setBounds(setAButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight);
-	abLoopButton.setBounds(loopButton.getRight() + spacing, y + 5 + buttonHeight, buttonWidth*2, buttonHeight);
+    setAButton.setBounds(loopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight);
+    setBButton.setBounds(setAButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight);
+    abLoopButton.setBounds(loopButton.getRight() + spacing, y + 5 + buttonHeight, buttonWidth * 2, buttonHeight);
 
     progressbar.setBounds(90, 150, 3 * getWidth() / 4 - 120, 30);
     tenBackwardButton.setBounds(110, (y / 2) + 25, buttonWidth / 2, buttonHeight);
@@ -153,7 +156,7 @@ void PlayerGUI::resized()
     volumeSlider.setBounds(volButton.getX() + 7, 30, 30, 120);
 
     speedSlider.setBounds(volumeSlider.getX() - 25, volumeSlider.getY(), 30, 120);
-	speedButton.setBounds(speedSlider.getX(), volButton.getY(), buttonWidth / 3, 25);
+    speedButton.setBounds(speedSlider.getX(), volButton.getY(), buttonWidth / 3, 25);
 
     int playlistY = 300;
     int playlistHeight = getHeight() - playlistY - 40;
@@ -161,7 +164,9 @@ void PlayerGUI::resized()
     playlistBox.setBounds(60, playlistY + 20, getWidth() - 120, playlistHeight - 80);
     addButton.setBounds(60, playlistY + playlistHeight - 50, 80, 30);
     removeButton.setBounds(addButton.getRight() + 10, playlistY + playlistHeight - 50, 80, 30);
-	shuffleButton.setBounds(removeButton.getRight() + 10, playlistY + playlistHeight - 50, 120, 30);
+    shuffleButton.setBounds(removeButton.getRight() + 10, playlistY + playlistHeight - 50, 120, 30);
+
+    mixButton.setBounds(shuffleButton.getRight() + 10, playlistY + playlistHeight - 50, 100, 30);
 
     metaLabel.setBounds(30, 20, getWidth() - 80, 100);
 
@@ -368,6 +373,13 @@ void PlayerGUI::buttonClicked(juce::Button* button)
             shuffledOrder.clear();
         }
     }
+    else if (button == &mixButton)
+    {
+        mixing = !mixing; 
+        mixButton.setButtonText(mixing ? "Mix: ON" : "Mix: OFF");
+        audio.setMixMode(mixing);
+        }
+
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
@@ -416,6 +428,48 @@ juce::String formatTime(double seconds)
 
 void PlayerGUI::timerCallback()
 {
+    if (audio.getMixMode() && audio.getLengthInSeconds() > 0.0)
+    {
+        double position = audio.getCurrentPosition();
+        double length = audio.getLengthInSeconds();
+        double timeLeft = length - position;
+
+        const double fadeDur = audio.crossfadeDuration;
+
+        if (!audio.isCrossfading && timeLeft <= fadeDur && currentTrackIndex + 1 < playlistFiles.size())
+        {
+           
+            int nextIndex = currentTrackIndex + 1;
+            DBG("Starting pre-load for crossfade into track " << nextIndex);
+            audio.isCrossfading = true;
+
+  
+            audio.startNextForCrossfade(playlistFiles[nextIndex]);
+        }
+
+        if (audio.isCrossfading)
+        {
+            float progress = (float)((fadeDur - timeLeft) / fadeDur);
+            progress = juce::jlimit(0.0f, 1.0f, progress);
+            audio.setCrossfadeProgress(progress);
+
+            if (progress >= 1.0f)
+            {
+               
+                audio.finishCrossfade();
+
+           
+                currentTrackIndex++;
+                auto& file = playlistFiles[currentTrackIndex];
+                extractMetadata(file);
+
+                DBG("Crossfade finished. Now playing track " << currentTrackIndex);
+            }
+        }
+
+    
+    }
+
     double position = audio.getCurrentPosition();
     double length = audio.getLengthInSeconds();
 
