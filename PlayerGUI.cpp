@@ -8,7 +8,7 @@ PlayerGUI::~PlayerGUI() {}
 
 PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
 {
-    for (auto* btn : { &loadButton, &stopButton, &loopButton, &setAButton, &setBButton, &abLoopButton })
+    for (auto* btn : { &loadButton, &stopButton, &loopButton, &addButton, &removeButton, &shuffleButton, &setAButton, &setBButton, &abLoopButton })
     {
         btn->addListener(this);
         btn->setColour(juce::TextButton::buttonColourId, juce::Colour(0xffa5978c));
@@ -16,12 +16,7 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
         addAndMakeVisible(btn);
     }
 
-
-    addAndMakeVisible(addButton);
-    addAndMakeVisible(removeButton);
     addAndMakeVisible(playlistBox);
-    addButton.addListener(this);
-    removeButton.addListener(this);
     playlistBox.setModel(this);
     playlistBox.setColour(juce::ListBox::backgroundColourId, juce::Colour(0xff1b1b1b));
 
@@ -50,6 +45,10 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     muteVol = juce::Drawable::createFromImageData(BinaryData::mute_svg, BinaryData::mute_svgSize);
     lowVol = juce::Drawable::createFromImageData(BinaryData::volumeDown_svg, BinaryData::volumeDown_svgSize);
     highVol = juce::Drawable::createFromImageData(BinaryData::volumeUp_svg, BinaryData::volumeUp_svgSize);
+	speedHalf = juce::Drawable::createFromImageData(BinaryData::speedHalf_svg, BinaryData::speedHalf_svgSize);
+	speedOne = juce::Drawable::createFromImageData(BinaryData::speedOne_svg, BinaryData::speedOne_svgSize);
+	speedOneHalf = juce::Drawable::createFromImageData(BinaryData::speedOneHalf_svg, BinaryData::speedOneHalf_svgSize);
+	speedTwo = juce::Drawable::createFromImageData(BinaryData::speedTwo_svg, BinaryData::speedTwo_svgSize);
 
     pausePlay.setImages(songplay.get());
     pausePlay.addListener(this);
@@ -58,6 +57,10 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     volButton.setImages(highVol.get());
     volButton.addListener(this);
     addAndMakeVisible(volButton);
+
+	speedButton.setImages(speedOne.get());
+	speedButton.addListener(this);
+	addAndMakeVisible(speedButton);
 
     volumeSlider.setRange(0.0, 1.0, 0.01);
     volumeSlider.setValue(0.5);
@@ -69,7 +72,7 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     speedSlider.setRange(0.5, 2.0, 0.01);
     speedSlider.setValue(1.0);
     speedSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    speedSlider.setSliderStyle(juce::Slider::Rotary);
+    speedSlider.setSliderStyle(juce::Slider::LinearVertical);
     speedSlider.addListener(this);
     addAndMakeVisible(speedSlider);
 
@@ -91,20 +94,14 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     addAndMakeVisible(metaLabel);
     metaLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     metaLabel.setJustificationType(juce::Justification::centred);
+    metaLabel.setMinimumHorizontalScale(1.0f);
+    metaLabel.setInterceptsMouseClicks(false, false);
+    metaLabel.setJustificationType(juce::Justification::centred);
+    metaLabel.setSize(getWidth() - 80, 80);
     metaLabel.setText("No track loaded", juce::dontSendNotification);
 
-
-    addAndMakeVisible(mixButton);
-    mixButton.setButtonText("Mix");
-    mixButton.onClick = [this] {
-        audio.mixTracks();
-        };
-    addAndMakeVisible(shuffleButton);
     shuffleButton.setButtonText("Shuffle: OFF");
-    shuffleButton.addListener(this);
-
-        }
-
+}
 
 void PlayerGUI::paint(juce::Graphics& g)
 {
@@ -131,7 +128,7 @@ void PlayerGUI::paint(juce::Graphics& g)
 
 void PlayerGUI::resized()
 {
-    int buttonWidth = 90;
+    int buttonWidth = 83;
     int buttonHeight = 30;
     int spacing = 1;
     int y = 190;
@@ -139,7 +136,10 @@ void PlayerGUI::resized()
     loadButton.setBounds(40, y + 5, buttonWidth, buttonHeight * 2);
     stopButton.setBounds(loadButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
     loopButton.setBounds(stopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
-    shuffleButton.setBounds(loopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
+	setAButton.setBounds(loopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight);
+	setBButton.setBounds(setAButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight);
+	abLoopButton.setBounds(loopButton.getRight() + spacing, y + 5 + buttonHeight, buttonWidth*2, buttonHeight);
+
     progressbar.setBounds(90, 150, 3 * getWidth() / 4 - 120, 30);
     tenBackwardButton.setBounds(110, (y / 2) + 25, buttonWidth / 2, buttonHeight);
     startButton.setBounds(tenBackwardButton.getRight(), (y / 2) + 25, buttonWidth / 2, buttonHeight);
@@ -149,10 +149,11 @@ void PlayerGUI::resized()
     currentTime.setBounds(50, progressbar.getY(), 45, progressbar.getHeight());
     totalTime.setBounds(progressbar.getRight(), progressbar.getY(), 45, progressbar.getHeight());
 
-    volButton.setBounds(totalTime.getRight() + 20, 150, buttonWidth / 2, 25);
-    volumeSlider.setBounds(volButton.getX() - 20, 30, getWidth() / 6, 120);
+    volButton.setBounds(totalTime.getRight() + 25, 150, buttonWidth / 2, 25);
+    volumeSlider.setBounds(volButton.getX() + 7, 30, 30, 120);
 
-    speedSlider.setBounds(loopButton.getRight() + 30, loopButton.getY(), 100, 100);
+    speedSlider.setBounds(volumeSlider.getX() - 25, volumeSlider.getY(), 30, 120);
+	speedButton.setBounds(speedSlider.getX(), volButton.getY(), buttonWidth / 3, 25);
 
     int playlistY = 300;
     int playlistHeight = getHeight() - playlistY - 40;
@@ -160,16 +161,9 @@ void PlayerGUI::resized()
     playlistBox.setBounds(60, playlistY + 20, getWidth() - 120, playlistHeight - 80);
     addButton.setBounds(60, playlistY + playlistHeight - 50, 80, 30);
     removeButton.setBounds(addButton.getRight() + 10, playlistY + playlistHeight - 50, 80, 30);
+	shuffleButton.setBounds(removeButton.getRight() + 10, playlistY + playlistHeight - 50, 120, 30);
 
-    metaLabel.setBounds(40, 60, getWidth() - 80, 30);
-
-    auto bounds = getLocalBounds();
-    auto width = bounds.getWidth();
-    auto height = bounds.getHeight();
-
-    mixButton.setBounds(width / 2 - 40, height / 2 - 15, 80, 30);
-
-
+    metaLabel.setBounds(30, 20, getWidth() - 80, 100);
 
     getLookAndFeel().setColour(juce::Slider::thumbColourId, juce::Colour(0xfff2662f));
     getLookAndFeel().setColour(juce::Slider::trackColourId, juce::Colour(0xff3a3a3a));
@@ -321,6 +315,7 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     else if (button == &endButton)
     {
         audio.setPositionToEnd();
+        pausePlay.setImages(songplay.get());
     }
     else if (button == &loopButton)
     {
@@ -328,22 +323,22 @@ void PlayerGUI::buttonClicked(juce::Button* button)
         audio.setLooping(looping);
         loopButton.setButtonText(looping ? "Loop: ON" : "Loop: OFF");
     }
-        else if (button == &setAButton)
-{
-    loopStart = audio.getCurrentPosition();
-}
+    else if (button == &setAButton)
+    {
+        loopStart = audio.getCurrentPosition();
+    }
 
-else if (button == &setBButton)
-{
-    loopEnd = audio.getCurrentPosition();
-}
+    else if (button == &setBButton)
+    {
+        loopEnd = audio.getCurrentPosition();
+    }
 
-else if (button == &abLoopButton)
-{
-    abLooping = !abLooping;
-    abLoopButton.setButtonText(abLooping ? "A-B Loop: ON" : "A-B Loop: OFF");
-    audio.setABLooping(abLooping, loopStart, loopEnd);
-}
+    else if (button == &abLoopButton)
+    {
+        abLooping = !abLooping;
+        abLoopButton.setButtonText(abLooping ? "A -> B Loop: ON" : "A -> B Loop: OFF");
+        audio.setABLooping(abLooping, loopStart, loopEnd);
+    }
     else if (button == &tenForwardButton)
     {
         audio.skipForward(10.0);
@@ -351,10 +346,6 @@ else if (button == &abLoopButton)
     else if (button == &tenBackwardButton)
     {
         audio.skipBackward(10.0);
-    }
-    if (button == &mixButton)
-    {
-        audio.mixTracks();
     }
     else if (button == &shuffleButton)
     {
@@ -396,6 +387,16 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider)
     else if (slider == &speedSlider)
     {
         audio.setSpeed(slider->getValue());
+        double speed = slider->getValue();
+
+        if (speed < 0.75)
+            speedButton.setImages(speedHalf.get());
+        else if (speed < 1.25)
+            speedButton.setImages(speedOne.get());
+        else if (speed < 1.75)
+            speedButton.setImages(speedOneHalf.get());
+        else
+            speedButton.setImages(speedTwo.get());
     }
     else if (slider == &progressbar)
     {
@@ -428,7 +429,6 @@ void PlayerGUI::timerCallback()
 
     if (position >= length)
     {
-
         if (looping)
         {
             audio.setPosition(0.0);
@@ -465,11 +465,6 @@ void PlayerGUI::timerCallback()
                     pausePlay.setImages(songplay.get());
                 }
             }
-            {
-
-                stopTimer();
-                pausePlay.setImages(songplay.get());
-            }
         }
     }
 }
@@ -491,16 +486,22 @@ void PlayerGUI::extractMetadata(const juce::File& file)
 
             juce::String title = juce::String(juce::CharPointer_UTF8(tag->title().toCString(true)));
             juce::String artist = juce::String(juce::CharPointer_UTF8(tag->artist().toCString(true)));
+            juce::String album = juce::String(juce::CharPointer_UTF8(tag->album().toCString(true)));
 
             if (title.isEmpty())
                 title = file.getFileNameWithoutExtension();
             if (artist.isEmpty())
                 artist = "Unknown Artist";
+            if (album.isEmpty())
+                album = "Unknown Album";
 
             int duration = f.audioProperties() ? f.audioProperties()->length() : 0;
 
-            metaLabel.setText("Title: " + title + " | Artist: " + artist +
-                " | Duration: " + juce::String(duration) + "s",
+            metaLabel.setText(
+                "Title: " + title + "\n"
+                "Artist: " + artist + "\n"
+                "Album: " + album + "\n"
+                "Duration: " + juce::String(duration) + "s",
                 juce::dontSendNotification);
         }
         else
