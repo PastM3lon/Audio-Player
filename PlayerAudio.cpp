@@ -6,6 +6,9 @@ PlayerAudio::PlayerAudio()
 {
     formatManager.registerBasicFormats();
     resamplingSource = std::make_unique<juce::ResamplingAudioSource>(&transportSource, false);
+
+
+    resamplingSourceNext = std::make_unique<juce::ResamplingAudioSource>(&transportSourceNext, false);
 }
 
 PlayerAudio::~PlayerAudio() {}
@@ -14,17 +17,54 @@ void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     transportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
     resamplingSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
+
+    transportSourceNext.prepareToPlay(samplesPerBlockExpected, sampleRate);
+    resamplingSourceNext->prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
 void PlayerAudio::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
+
     resamplingSource->getNextAudioBlock(bufferToFill);
+
+
+    if (currentGain != 1.0f)
+    {
+        auto* out = bufferToFill.buffer;
+        const int numCh = out->getNumChannels();
+        const int numSamps = bufferToFill.numSamples;
+        for (int ch = 0; ch < numCh; ++ch)
+            out->applyGainRamp(ch, bufferToFill.startSample, numSamps, currentGain, currentGain);
+    }
+
+   
+    if (nextLoaded)
+    {
+        juce::AudioBuffer<float> nextBuf(bufferToFill.buffer->getNumChannels(), bufferToFill.numSamples);
+        nextBuf.clear();
+        juce::AudioSourceChannelInfo nextInfo(&nextBuf, 0, bufferToFill.numSamples);
+
+        resamplingSourceNext->getNextAudioBlock(nextInfo);
+
+        auto* out = bufferToFill.buffer;
+        const int numCh = out->getNumChannels();
+        const int numSamps = bufferToFill.numSamples;
+        for (int ch = 0; ch < numCh; ++ch)
+        {
+            float* dst = out->getWritePointer(ch, bufferToFill.startSample);
+            const float* src = nextBuf.getReadPointer(ch);
+            for (int i = 0; i < numSamps; ++i)
+                dst[i] += src[i] * nextGain;
+        }
+    }
+
     if (abLooping && loopEnd > loopStart) {
         double current = transportSource.getCurrentPosition();
         if (current >= loopEnd)
             transportSource.setPosition(loopStart);
     }
 }
+
 
 void PlayerAudio::releaseResources()
 {
@@ -41,7 +81,7 @@ void readMetadata(PlayerAudio& player, const juce::File& file)
         player.title = juce::String(juce::CharPointer_UTF8(tag->title().toCString(true)));
         player.artist = juce::String(juce::CharPointer_UTF8(tag->artist().toCString(true)));
         player.album = juce::String(juce::CharPointer_UTF8(tag->album().toCString(true)));
-        
+
     }
     else
     {
@@ -171,3 +211,83 @@ void PlayerAudio::setABLooping(bool shouldLoop, double start, double end)
     loopStart = start;
     loopEnd = end;
 }
+void PlayerAudio::setMixMode(bool shouldMix)
+{
+    isMixModeOn = shouldMix;
+
+    if (isMixModeOn)
+    {
+        DBG("Mix Mode: ON");
+    }
+    else
+    {
+        DBG("Mix Mode: OFF");
+        isCrossfading = false;
+    }
+}
+void PlayerAudio::startNextForCrossfade(const juce::File& file)
+{
+
+    if (file.existsAsFile())
+    {
+        if (auto* reader = formatManager.createReaderFor(file))
+        {
+          
+            transportSourceNext.stop();
+            transportSourceNext.setSource(nullptr);
+
+            readerSourceNext.reset(new juce::AudioFormatReaderSource(reader, true));
+            transportSourceNext.setSource(readerSourceNext.get(), 0, nullptr, reader->sampleRate);
+
+      
+            transportSourceNext.setGain(0.0f);
+            transportSourceNext.start();
+            nextLoaded = true;
+            nextGain = 0.0f;
+
+        }
+    }
+}
+
+void PlayerAudio::setCrossfadeProgress(float progress)
+{
+    progress = juce::jlimit(0.0f, 1.0f, progress);
+    nextGain = progress;
+    currentGain = 1.0f - progress;
+    transportSource.setGain(currentGain);
+    transportSourceNext.setGain(nextGain);
+
+}
+
+void PlayerAudio::finishCrossfade()
+{
+    if (!nextLoaded)
+        return;
+
+    transportSource.stop();
+    transportSource.setSource(nullptr);
+    readerSource.reset();
+
+    if (readerSourceNext)
+    {
+        auto* r = readerSourceNext->getAudioFormatReader();
+
+
+        readerSource = std::move(readerSourceNext);
+
+        double currentPos = transportSourceNext.getCurrentPosition();
+
+        transportSource.setSource(readerSource.get(), 0, nullptr, r->sampleRate);
+        transportSource.setPosition(currentPos); 
+        transportSource.setGain(1.0f);            
+        transportSource.start();
+        transportSourceNext.stop();
+        transportSourceNext.setSource(nullptr);
+        nextLoaded = false;
+
+        currentGain = 1.0f;
+        nextGain = 0.0f;
+        isCrossfading = false;
+    }
+}
+
