@@ -2,13 +2,16 @@
 #include "PlayerGUI.h"
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
-#include <taglib/audioproperties.h>
 
+// Destructor for the PlayerGUI class
 PlayerGUI::~PlayerGUI() {}
 
+// Constructor for the PlayerGUI class
+// Encapsulation: Initializes the internal details of the gui
+// Sets up the appearance and behavior of all buttons, sliders, labels, etc...
 PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
 {
-    for (auto* btn : { &loadButton, &stopButton, &loopButton, &addButton, &removeButton, &shuffleButton, &setAButton, &setBButton, &abLoopButton ,&mixButton })
+    for (auto* btn : { &loadButton, &stopButton, &loopButton, &addButton, &removeButton, &shuffleButton, &setAButton, &setBButton, &abLoopButton, &mixButton })
     {
         btn->addListener(this);
         btn->setColour(juce::TextButton::buttonColourId, juce::Colour(0xffa5978c));
@@ -45,10 +48,10 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     muteVol = juce::Drawable::createFromImageData(BinaryData::mute_svg, BinaryData::mute_svgSize);
     lowVol = juce::Drawable::createFromImageData(BinaryData::volumeDown_svg, BinaryData::volumeDown_svgSize);
     highVol = juce::Drawable::createFromImageData(BinaryData::volumeUp_svg, BinaryData::volumeUp_svgSize);
-    speedHalf = juce::Drawable::createFromImageData(BinaryData::speedHalf_svg, BinaryData::speedHalf_svgSize);
-    speedOne = juce::Drawable::createFromImageData(BinaryData::speedOne_svg, BinaryData::speedOne_svgSize);
-    speedOneHalf = juce::Drawable::createFromImageData(BinaryData::speedOneHalf_svg, BinaryData::speedOneHalf_svgSize);
-    speedTwo = juce::Drawable::createFromImageData(BinaryData::speedTwo_svg, BinaryData::speedTwo_svgSize);
+	speedHalf = juce::Drawable::createFromImageData(BinaryData::speedHalf_svg, BinaryData::speedHalf_svgSize);
+	speedOne = juce::Drawable::createFromImageData(BinaryData::speedOne_svg, BinaryData::speedOne_svgSize);
+	speedOneHalf = juce::Drawable::createFromImageData(BinaryData::speedOneHalf_svg, BinaryData::speedOneHalf_svgSize);
+	speedTwo = juce::Drawable::createFromImageData(BinaryData::speedTwo_svg, BinaryData::speedTwo_svgSize);
 
     pausePlay.setImages(songplay.get());
     pausePlay.addListener(this);
@@ -58,9 +61,9 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     volButton.addListener(this);
     addAndMakeVisible(volButton);
 
-    speedButton.setImages(speedOne.get());
-    speedButton.addListener(this);
-    addAndMakeVisible(speedButton);
+	speedButton.setImages(speedOne.get());
+	speedButton.addListener(this);
+	addAndMakeVisible(speedButton);
 
     volumeSlider.setRange(0.0, 1.0, 0.01);
     volumeSlider.setValue(0.5);
@@ -101,11 +104,11 @@ PlayerGUI::PlayerGUI(PlayerAudio& audioRef) : audio(audioRef)
     metaLabel.setText("No track loaded", juce::dontSendNotification);
 
     shuffleButton.setButtonText("Shuffle: OFF");
-
     mixButton.setButtonText("Mix: OFF");
-
 }
 
+// Polymorphism: Overrides the virtual paint function from the juce::Component base class
+// Defines the look and feel of the GUI
 void PlayerGUI::paint(juce::Graphics& g)
 {
     juce::Colour top = juce::Colour(0xffd9d4cf);
@@ -116,9 +119,7 @@ void PlayerGUI::paint(juce::Graphics& g)
     auto displayArea = juce::Rectangle<float>(40, 30, getWidth() - 80, 150);
     g.setColour(juce::Colour(0xff1b1b1b));
     g.fillRoundedRectangle(displayArea, 12.0f);
-    g.setColour(juce::Colour(0xfff2662f).withAlpha(0.8f));
-    g.fillRoundedRectangle(displayArea.getX(), displayArea.getBottom() + 8, displayArea.getWidth(), 6, 3);
-
+    
     int playlistY = 300;
     int playlistHeight = getHeight() - playlistY - 40;
     auto playlistArea = juce::Rectangle<float>(40, playlistY, getWidth() - 80, (float)playlistHeight);
@@ -129,6 +130,8 @@ void PlayerGUI::paint(juce::Graphics& g)
     g.drawRoundedRectangle(playlistArea, 12.0f, 1.5f);
 }
 
+// Polymorphism: Overrides the virtual resized function from the juce::Component base class
+// Defines the layout of all the child components within the PlayerGUI class
 void PlayerGUI::resized()
 {
     int buttonWidth = 83;
@@ -139,9 +142,9 @@ void PlayerGUI::resized()
     loadButton.setBounds(40, y + 5, buttonWidth, buttonHeight * 2);
     stopButton.setBounds(loadButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
     loopButton.setBounds(stopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight * 2);
-    setAButton.setBounds(loopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight);
-    setBButton.setBounds(setAButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight);
-    abLoopButton.setBounds(loopButton.getRight() + spacing, y + 5 + buttonHeight, buttonWidth * 2, buttonHeight);
+	setAButton.setBounds(loopButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight);
+	setBButton.setBounds(setAButton.getRight() + spacing, y + 5, buttonWidth, buttonHeight);
+	abLoopButton.setBounds(loopButton.getRight() + spacing, y + 5 + buttonHeight, buttonWidth*2, buttonHeight);
 
     progressbar.setBounds(90, 150, 3 * getWidth() / 4 - 120, 30);
     tenBackwardButton.setBounds(110, (y / 2) + 25, buttonWidth / 2, buttonHeight);
@@ -156,17 +159,16 @@ void PlayerGUI::resized()
     volumeSlider.setBounds(volButton.getX() + 7, 30, 30, 120);
 
     speedSlider.setBounds(volumeSlider.getX() - 25, volumeSlider.getY(), 30, 120);
-    speedButton.setBounds(speedSlider.getX(), volButton.getY(), buttonWidth / 3, 25);
+	speedButton.setBounds(speedSlider.getX(), volButton.getY(), buttonWidth / 3, 25);
 
     int playlistY = 300;
     int playlistHeight = getHeight() - playlistY - 40;
 
     playlistBox.setBounds(60, playlistY + 20, getWidth() - 120, playlistHeight - 80);
-    addButton.setBounds(60, playlistY + playlistHeight - 50, 80, 30);
-    removeButton.setBounds(addButton.getRight() + 10, playlistY + playlistHeight - 50, 80, 30);
-    shuffleButton.setBounds(removeButton.getRight() + 10, playlistY + playlistHeight - 50, 120, 30);
-
-    mixButton.setBounds(shuffleButton.getRight() + 10, playlistY + playlistHeight - 50, 100, 30);
+    addButton.setBounds(55, playlistY + playlistHeight - 50, 80, 30);
+    removeButton.setBounds(addButton.getRight() + 5, playlistY + playlistHeight - 50, 80, 30);
+	shuffleButton.setBounds(removeButton.getRight() + 5, playlistY + playlistHeight - 50, 120, 30);
+    mixButton.setBounds(shuffleButton.getRight() + 5, playlistY + playlistHeight - 50, 100, 30);
 
     metaLabel.setBounds(30, 20, getWidth() - 80, 100);
 
@@ -178,6 +180,8 @@ int PlayerGUI::getNumRows()
     return playlistFiles.size();
 }
 
+// Polymorphism: Overrides the virtual paintListBoxItem function from juce::ListBoxModel
+// Defines how to draw the content of a single item in the list box
 void PlayerGUI::paintListBoxItem(int rowNumber, juce::Graphics& g, int width, int height, bool rowIsSelected)
 {
     if (rowIsSelected)
@@ -191,6 +195,8 @@ void PlayerGUI::paintListBoxItem(int rowNumber, juce::Graphics& g, int width, in
             juce::Justification::centredLeft);
 }
 
+// Polymorphism: Overrides the virtual listBoxItemDoubleClicked function from juce::ListBoxModel
+// Sets the selected track as the current track and starts playback
 void PlayerGUI::listBoxItemDoubleClicked(int row, const juce::MouseEvent&)
 {
     if (row >= 0 && row < playlistFiles.size())
@@ -200,6 +206,8 @@ void PlayerGUI::listBoxItemDoubleClicked(int row, const juce::MouseEvent&)
     }
 }
 
+// Handles the logic for playing the currently selected track from the playlist
+// Loads the file, extracts metadata, starts the audio, and updates the ui
 void PlayerGUI::playSelectedFromPlaylist()
 {
     if (currentTrackIndex >= 0 && currentTrackIndex < playlistFiles.size())
@@ -215,13 +223,14 @@ void PlayerGUI::playSelectedFromPlaylist()
     }
 }
 
+// Polymorphism: Overrides the virtual buttonClicked function from juce::Button::Listener
+// Determines which button was pressed and executes the action of such button.
 void PlayerGUI::buttonClicked(juce::Button* button)
 {
     if (button == &addButton)
     {
         fileChooser = std::unique_ptr<juce::FileChooser>(
             new juce::FileChooser("Select Audio Files", juce::File{}, "*.mp3;*.wav"));
-
 
         fileChooser->launchAsync(
             juce::FileBrowserComponent::openMode |
@@ -242,7 +251,6 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                         shuffledOrder.swap(i, rng.nextInt(i + 1));
 
                 }
-
             });
     }
     else if (button == &removeButton)
@@ -375,19 +383,20 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     }
     else if (button == &mixButton)
     {
-        mixing = !mixing; 
+        mixing = !mixing;
         mixButton.setButtonText(mixing ? "Mix: ON" : "Mix: OFF");
         audio.setMixMode(mixing);
         }
-
 }
 
+// Polymorphism: Overrides the virtual sliderValueChanged function from juce::Slider::Listener
+// Checks which slider was moved and updates the audio parameter (volume, speed, or position)
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
 {
     if (slider == &volumeSlider)
     {
         float vol = (float)slider->getValue();
-        audio.setGain(vol);
+        audio.setVol(vol);
 
         if (vol == 0.0f)
             volButton.setImages(muteVol.get());
@@ -418,6 +427,7 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider)
     }
 }
 
+
 juce::String formatTime(double seconds)
 {
     int totalSeconds = (int)std::round(seconds);
@@ -426,6 +436,9 @@ juce::String formatTime(double seconds)
     return juce::String::formatted("%02d:%02d", minutes, secs);
 }
 
+// Polymorphism: Overrides the virtual timerCallback function from the juce::Timer base class
+// Updates the progress bar and time displays in real-time
+// Also manages crossfade logic when in mix mode
 void PlayerGUI::timerCallback()
 {
     if (audio.getMixMode() && audio.getLengthInSeconds() > 0.0)
@@ -434,20 +447,20 @@ void PlayerGUI::timerCallback()
         double length = audio.getLengthInSeconds();
         double timeLeft = length - position;
 
-        const double fadeDur = audio.crossfadeDuration;
+        const double fadeDur = audio.getCrossfadeDuration();
 
-        if (!audio.isCrossfading && timeLeft <= fadeDur && currentTrackIndex + 1 < playlistFiles.size())
+        if (!audio.getIsCrossfading() && timeLeft <= fadeDur && currentTrackIndex + 1 < playlistFiles.size())
         {
-           
+
             int nextIndex = currentTrackIndex + 1;
             DBG("Starting pre-load for crossfade into track " << nextIndex);
-            audio.isCrossfading = true;
+            audio.setIsCrossfading(true);
 
-  
+
             audio.startNextForCrossfade(playlistFiles[nextIndex]);
         }
 
-        if (audio.isCrossfading)
+        if (audio.getIsCrossfading())
         {
             float progress = (float)((fadeDur - timeLeft) / fadeDur);
             progress = juce::jlimit(0.0f, 1.0f, progress);
@@ -455,10 +468,10 @@ void PlayerGUI::timerCallback()
 
             if (progress >= 1.0f)
             {
-               
+
                 audio.finishCrossfade();
 
-           
+
                 currentTrackIndex++;
                 auto& file = playlistFiles[currentTrackIndex];
                 extractMetadata(file);
@@ -467,7 +480,7 @@ void PlayerGUI::timerCallback()
             }
         }
 
-    
+
     }
 
     double position = audio.getCurrentPosition();
@@ -523,6 +536,7 @@ void PlayerGUI::timerCallback()
     }
 }
 
+// Extracts metadata (title, artist, album) from the track
 void PlayerGUI::extractMetadata(const juce::File& file)
 {
     if (!file.existsAsFile())
